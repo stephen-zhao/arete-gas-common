@@ -1,4 +1,11 @@
 {
+  "name": "@zhaostephen/arete-gas-common",
+  "description": "Arete Common Library for GAS",
+  "author": {
+    "name": "Stephen Zhao",
+    "email": "mail@zhaostephen.com",
+    "url": "https://zhaostephen.com"
+  },
   "devDependencies": {
     "@types/google-apps-script": "^1.0.14"
   }

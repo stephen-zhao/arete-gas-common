@@ -1,24 +1,27 @@
+//=====================================================================================
+// ENVIRONMENT VARIABLE SUPPORT
+
 let scriptProperties_ = PropertiesService.getScriptProperties();
-function defineEnvironmentVariable_(key, value) {
+function defineEnvironmentVariable_(key: string, value: string) {
   scriptProperties_.setProperty(key, value);
   return value;
 }
-function getEnvironmentVariable_(key) {
+function getEnvironmentVariable_(key: string) {
   return scriptProperties_.getProperty(key);
 }
 
 //=====================================================================================
 // ENVIRONMENT VARIABLES
 
-var ISDEBUG = defineEnvironmentVariable_('ISDEBUG', true);
+var ISDEBUG = defineEnvironmentVariable_('ISDEBUG', 'true');
 
 
 //=====================================================================================
 // INITIALIZE ALL SCRIPTS
 
 function __libraryInit__() {
-  var keys = Object.keys(this);
-  var inits = new Array();
+  var keys = Object.keys(globalThis);
+  var inits = new Array<string>();
   for (var i = 0; i < keys.length; ++i) {
     var funcName = keys[i];
     if (funcName.indexOf("__init__") == 0) {
@@ -29,7 +32,8 @@ function __libraryInit__() {
   inits.sort();
   for (var i = 0; i < inits.length; i += 1) {
     Logger.log("Initializing " + inits[i]);
-    this[inits[i]].call(this);
+    // @ts-expect-error
+    globalThis[inits[i]].call(globalThis);
   }
 }
 
@@ -41,8 +45,8 @@ function __libraryInit__() {
 // TESTING SUPPORT
 
 function runTests() {
-  const keys = Object.keys(this);
-  const testSuites = new Array();
+  const keys = Object.keys(globalThis);
+  const testSuites = new Array<string>();
   Logger.log("Discovering test suites...");
   for (let i = 0; i < keys.length; ++i) {
     const globalName = keys[i];
@@ -54,7 +58,8 @@ function runTests() {
   Logger.log("Running test suites...");
   for (let i = 0; i < testSuites.length; ++i) {
     Logger.log("Running test suite " + i + ": " + testSuites[i].substring(9));
-    const testSuite = this[testSuites[i]];
+    // @ts-expect-error
+    const testSuite = globalThis[testSuites[i]];
     for (const testName in testSuite) {
       testSuite[testName]();
     }
@@ -63,7 +68,7 @@ function runTests() {
   Logger.log("All " + testSuites.length + " tests passed!");
 }
 
-let Assert_ = function(test) {
+let Assert_ = function(test: boolean) {
   if (!test) {
     throw new Error("Test failed!");
   }

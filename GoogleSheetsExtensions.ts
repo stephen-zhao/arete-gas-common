@@ -1,6 +1,17 @@
+type CellWithValue = {
+  row: number,
+  col: number,
+  value: any,
+};
+
+type CellLocation = {
+  row: number,
+  col: number,
+}
+
 function SheetUtils() { }
 
-SheetUtils.columnToletter = function(column)
+SheetUtils.columnToletter = function(column: number): string
 {
   let temp, letter = '';
   while (column > 0)
@@ -12,7 +23,7 @@ SheetUtils.columnToletter = function(column)
   return letter;
 }
 
-SheetUtils.letterToColumn = function(letter)
+SheetUtils.letterToColumn = function(letter: string): number
 {
   let column = 0, length = letter.length;
   for (var i = 0; i < length; ++i) {
@@ -21,42 +32,42 @@ SheetUtils.letterToColumn = function(letter)
   return column;
 }
 
-SheetUtils.indicesToA1Range = function(colStart, rowStart, colEnd, rowEnd)
+SheetUtils.indicesToA1Range = function(colStart: number, rowStart: number, colEnd: number, rowEnd: number): string
 {
   return SheetUtils.columnToletter(colStart) + rowStart + ":" + SheetUtils.columnToletter(colEnd) + rowEnd;
 }
 
-SheetUtils.indicesToA1Cell = function(col, row)
+SheetUtils.indicesToA1Cell = function(col: number, row: number): string
 {
   return SheetUtils.columnToletter(col) + row;
 }
 
-SheetUtils.getColumnHeaders = function(sheet)
+SheetUtils.getColumnHeaders = function(sheet: GoogleAppsScript.Spreadsheet.Sheet): GoogleAppsScript.Spreadsheet.Range
 {
   return sheet.getRange("1:1");
 }
 
-SheetUtils.findColumnByHeader = function(sheet, header)
+SheetUtils.findColumnByHeader = function(sheet: GoogleAppsScript.Spreadsheet.Sheet, header: string): number | null
 {
   const colHeaders = SheetUtils.getColumnHeaders(sheet);
-  const col = RangeUtils.findFirstCellInRange(colHeaders, header).col;
+  const col = RangeUtils.findFirstCellInRange(colHeaders, header)?.col ?? null;
   return col;
 }
 
 function RangeUtils() { }
 
-RangeUtils.findFirstCellInRange = function(range, value) {
+RangeUtils.findFirstCellInRange = function(range: GoogleAppsScript.Spreadsheet.Range, value: any): CellWithValue | null {
   const values = range.getValues();
   for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
     const colIdx = values[rowIdx].indexOf(value);
     if (colIdx != -1) {
-      return { row: range.getRow() + rowIdx, col: range.getColumn() + colIdx };
+      return { row: range.getRow() + rowIdx, col: range.getColumn() + colIdx, value };
     }
   }
   return null;
 }
 
-RangeUtils.findAllCellsInRange = function(range, value) {
+RangeUtils.findAllCellsInRange = function(range: GoogleAppsScript.Spreadsheet.Range, value: any): Array<CellWithValue> {
   const values = range.getValues();
   const foundCells = [];
   for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
@@ -64,7 +75,7 @@ RangeUtils.findAllCellsInRange = function(range, value) {
     while (colIdx >= 0) {
       colIdx = values[rowIdx].indexOf(value, colIdx);
       if (colIdx != -1) {
-        foundCells.push({ row: range.getRow() + rowIdx, col: range.getColumn() + colIdx });
+        foundCells.push({ row: range.getRow() + rowIdx, col: range.getColumn() + colIdx, value });
         ++colIdx;
       }
     }
@@ -72,7 +83,7 @@ RangeUtils.findAllCellsInRange = function(range, value) {
   return foundCells;
 }
 
-RangeUtils.getAllCellsInRange = function(range) {
+RangeUtils.getAllCellsInRange = function(range: GoogleAppsScript.Spreadsheet.Range): Array<CellWithValue> {
   const values = range.getValues();
   const cells = [];
   for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
@@ -83,7 +94,7 @@ RangeUtils.getAllCellsInRange = function(range) {
   return cells;
 }
 
-RangeUtils.getLastFilledCellInRange = function(range) {
+RangeUtils.getLastFilledCellInRange = function(range: GoogleAppsScript.Spreadsheet.Range): CellWithValue | null {
   const values = range.getValues();
   for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
     for (let colIdx = 0; colIdx < values[rowIdx].length; ++colIdx) {

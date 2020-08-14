@@ -1,9 +1,12 @@
-class GasLogger extends LoggerBase {
-  constructor() {
+class GasLogger extends LoggerBase
+{
+  constructor()
+  {
     super();
   }
   
-  log(msg, sev) {
+  log(msg: string, sev: string): void
+  {
     if (!sev) {
       sev = "DEBUG";
     }

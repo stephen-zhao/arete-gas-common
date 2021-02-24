@@ -1,123 +1,142 @@
 type CellWithValue = {
-  row: number,
-  col: number,
+  rowIdx: number,
+  colIdx: number,
   value: any,
 };
 
 type CellLocation = {
-  row: number,
-  col: number,
-}
+  rowIdx: number,
+  colIdx: number,
+};
 
-function SheetUtils() { }
-
-SheetUtils.columnToletter = function(column: number): string
-{
-  let temp, letter = '';
-  while (column > 0)
-  {
-    temp = (column - 1) % 26;
-    letter = String.fromCharCode(temp + 65) + letter;
-    column = (column - temp - 1) / 26;
-  }
-  return letter;
-}
-
-SheetUtils.letterToColumn = function(letter: string): number
-{
-  let column = 0, length = letter.length;
-  for (var i = 0; i < length; ++i) {
-    column += (letter.charCodeAt(i) - 64) * Math.pow(26, length - i - 1);
-  }
-  return column;
-}
-
-SheetUtils.indicesToA1Range = function(colStart: number, rowStart: number, colEnd: number, rowEnd: number): string
-{
-  return SheetUtils.columnToletter(colStart) + rowStart + ":" + SheetUtils.columnToletter(colEnd) + rowEnd;
-}
-
-SheetUtils.indicesToA1Cell = function(col: number, row: number): string
-{
-  return SheetUtils.columnToletter(col) + row;
-}
-
-SheetUtils.getColumnHeaders = function(sheet: GoogleAppsScript.Spreadsheet.Sheet): GoogleAppsScript.Spreadsheet.Range
-{
-  return sheet.getRange("1:1");
-}
-
-SheetUtils.findColumnByHeader = function(sheet: GoogleAppsScript.Spreadsheet.Sheet, header: string): number | null
-{
-  const colHeaders = SheetUtils.getColumnHeaders(sheet);
-  const col = RangeUtils.findFirstCellInRange(colHeaders, header)?.col ?? null;
-  return col;
-}
-
-function RangeUtils() { }
-
-RangeUtils.findFirstCellInRange = function(range: GoogleAppsScript.Spreadsheet.Range, value: any): CellWithValue | null {
-  const values = range.getValues();
-  for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
-    const colIdx = values[rowIdx].indexOf(value);
-    if (colIdx != -1) {
-      return { row: range.getRow() + rowIdx, col: range.getColumn() + colIdx, value };
+class SheetUtils {
+  static colIdxToA1(colIdx: number): string {
+    let leastSig26Dig, colA1 = '';
+    while (colIdx > 0) {
+      leastSig26Dig = (colIdx - 1) % 26;
+      colA1 = String.fromCharCode(leastSig26Dig + 65) + colA1;
+      colIdx = (colIdx - leastSig26Dig - 1) / 26;
     }
+    return colA1;
   }
-  return null;
+
+  static colA1ToIdx(colA1: string): number {
+    let colIdx = 0, length = colA1.length;
+    for (var i = 0; i < length; ++i) {
+      colIdx += (colA1.charCodeAt(i) - 64) * Math.pow(26, length - i - 1);
+    }
+    return colIdx;
+  }
+
+  static idxsToA1Range(colIdxStart: number, rowIdxStart: number, colIdxEnd: number, rowIdxEnd: number): string {
+    return SheetUtils.colIdxToA1(colIdxStart) + rowIdxStart + ":" + SheetUtils.colIdxToA1(colIdxEnd) + rowIdxEnd;
+  }
+
+  static idxsToA1Cell(colIdx: number, rowIdx: number): string {
+    return SheetUtils.colIdxToA1(colIdx) + rowIdx;
+  }
+
+  static getColumnHeaders(sheet: GoogleAppsScript.Spreadsheet.Sheet): GoogleAppsScript.Spreadsheet.Range {
+    return sheet.getRange("1:1");
+  }
+
+  static findColIdxByHeader(sheet: GoogleAppsScript.Spreadsheet.Sheet, header: string): number | undefined {
+    const colHeaders = SheetUtils.getColumnHeaders(sheet);
+    const colIdx = RangeUtils.findFirstCellInRange(colHeaders, header)?.colIdx ?? undefined;
+    return colIdx;
+  }
 }
 
-RangeUtils.findAllCellsInRange = function(range: GoogleAppsScript.Spreadsheet.Range, value: any): Array<CellWithValue> {
-  const values = range.getValues();
-  const foundCells = [];
-  for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
-    let colIdx = 0;
-    while (colIdx >= 0) {
-      colIdx = values[rowIdx].indexOf(value, colIdx);
-      if (colIdx != -1) {
-        foundCells.push({ row: range.getRow() + rowIdx, col: range.getColumn() + colIdx, value });
-        ++colIdx;
+
+class RangeUtils {
+
+  static findFirstCellInRange(range: GoogleAppsScript.Spreadsheet.Range, value: any): CellWithValue | undefined {
+    const values = range.getValues();
+    for (let rowRidx = 0; rowRidx < values.length; ++rowRidx) {
+      const colRidx = values[rowRidx].indexOf(value);
+      if (colRidx != -1) {
+        return {
+          rowIdx: range.getRow() + rowRidx,
+          colIdx: range.getColumn() + colRidx,
+          value,
+        };
       }
     }
+    return undefined;
   }
-  return foundCells;
-}
 
-RangeUtils.getAllCellsInRange = function(range: GoogleAppsScript.Spreadsheet.Range): Array<CellWithValue> {
-  const values = range.getValues();
-  const cells = [];
-  for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
-    for (let colIdx = 0; colIdx < values[rowIdx].length; ++colIdx) {
-      cells.push({ row: range.getRow() + rowIdx, col: range.getColumn() + colIdx, value: values[rowIdx][colIdx] });
-    }
-  }
-  return cells;
-}
-
-RangeUtils.getLastFilledCellInRange = function(range: GoogleAppsScript.Spreadsheet.Range): CellWithValue | null {
-  const values = range.getValues();
-  for (let rowIdx = 0; rowIdx < values.length; ++rowIdx) {
-    for (let colIdx = 0; colIdx < values[rowIdx].length; ++colIdx) {
-      const value = values[rowIdx][colIdx];
-      // If we are NOT filled, then search backwards for last filled cell
-      if (value === undefined || value === null || value === '') {
-        let row, col;
-        // If we are at the first cell in the range, then there are no filled cells
-        if (rowIdx === 0 && colIdx === 0) return null;
-        // If we are at the first cell in the row, move to the last cell in the previous row
-        if (colIdx === 0) {
-          row = range.getRow() + rowIdx - 1;
-          col = range.getLastColumn();
+  static findAllCellsInRange(range: GoogleAppsScript.Spreadsheet.Range, value: any): Array<CellWithValue> {
+    const values = range.getValues();
+    const foundCells = [];
+    for (let rowRidx = 0; rowRidx < values.length; ++rowRidx) {
+      let colRidx = 0;
+      while (colRidx >= 0) {
+        colRidx = values[rowRidx].indexOf(value, colRidx);
+        if (colRidx != -1) {
+          foundCells.push({
+            rowIdx: range.getRow() + rowRidx,
+            colIdx: range.getColumn() + colRidx,
+            value,
+          });
+          ++colRidx;
         }
-        // Otherwise, move to the previous cell in the current row
-        else {
-          row = range.getRow() + rowIdx;
-          col = range.getColumn() + colIdx - 1;
-        }
-        return { row: row, col: col, value: values[row][col] };
       }
     }
+    return foundCells;
   }
-  // Otherwise, no unfilled cells found, so return last cell
-  return { row: range.getLastRow(), col: range.getLastColumn(), value: values[range.getLastRow()][range.getLastColumn()] };
+
+  static getAllCellsInRange(range: GoogleAppsScript.Spreadsheet.Range): Array<CellWithValue> {
+    const values = range.getValues();
+    const cells = [];
+    for (let rowRidx = 0; rowRidx < values.length; ++rowRidx) {
+      for (let colRidx = 0; colRidx < values[rowRidx].length; ++colRidx) {
+        cells.push({
+          rowIdx: range.getRow() + rowRidx,
+          colIdx: range.getColumn() + colRidx,
+          value: values[rowRidx][colRidx],
+        });
+      }
+    }
+    return cells;
+  }
+
+  static getLastFilledCellInRange(range: GoogleAppsScript.Spreadsheet.Range): CellWithValue | undefined {
+    const values = range.getValues();
+    // TODO: make a binary search instead
+    for (let rowRidx = values.length - 1; rowRidx >= 0; --rowRidx) {
+      for (let colRidx = values[rowRidx].length - 1; colRidx >= 0; --colRidx) {
+        const value = values[rowRidx][colRidx];
+        // We are at the last filled cell
+        if (value !== undefined && value !== null && value !== '') {
+          return {
+            rowIdx: range.getRow() + rowRidx,
+            colIdx: range.getColumn() + colRidx,
+            value: values[rowRidx][colRidx],
+          }
+        }
+      }
+    }
+    // Otherwise, no filled cells found
+    return undefined;
+  }
+
+  static getFirstUnfilledCellInRange(range: GoogleAppsScript.Spreadsheet.Range): CellWithValue | undefined {
+    const values = range.getValues();
+    // TODO: make a binary search instead
+    for (let rowRidx = 0; rowRidx < values.length; ++rowRidx) {
+      for (let colRidx = 0; colRidx < values[rowRidx].length; ++colRidx) {
+        const value = values[rowRidx][colRidx];
+        // We are at the first unfilled cell
+        if (value === undefined || value === null || value === '') {
+          return {
+            rowIdx: range.getRow() + rowRidx,
+            colIdx: range.getColumn() + colRidx,
+            value: values[rowRidx][colRidx],
+          }
+        }
+      }
+    }
+    // Otherwise, no unfilled cells found
+    return undefined;
+  }
 }

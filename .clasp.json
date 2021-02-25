@@ -1,1 +1,15 @@
-{"scriptId":"1sK0cTDsvsjSvyFL9wEObEbUjGamGofkB-IpDrVybOdxiEw1dBXQ5uOHD"}
+{
+  "scriptId": "1sK0cTDsvsjSvyFL9wEObEbUjGamGofkB-IpDrVybOdxiEw1dBXQ5uOHD",
+  "filePushOrder": [
+    "0_Library.ts",
+
+    "CoreUtils.ts",
+    "ArrayUtils.ts",
+    
+    "LoggerBase.ts",
+    "GasLogger.ts",
+    "SpreadsheetLogger.ts",
+
+    "GoogleSheetsExtensions.ts"
+  ]
+}

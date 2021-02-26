@@ -6,15 +6,15 @@
 // are not instance-specific, meaning that they are shared across all
 // running instances of this library
 
-function __gasp__defineLibraryScopedVariable<TValue>(key: string, value: TValue): TValue {
-  __gasp__setLibraryScopedVariable(key, value);
+function __gasp__defineLibraryScopedVariable__<TValue>(key: string, value: TValue): TValue {
+  __gasp__setLibraryScopedVariable__(key, value);
   return value;
 }
-function __gasp__setLibraryScopedVariable<TValue>(key: string, value: TValue) {
+function __gasp__setLibraryScopedVariable__<TValue>(key: string, value: TValue) {
   const scriptProperties = PropertiesService.getScriptProperties();
   switch (typeof (value)) {
     case 'function':
-      throw new Error('Error in __gasp__setLibraryScopedVariable: function-typed variable is not supported.');
+      throw new Error('Error in __gasp__setLibraryScopedVariable__: function-typed variable is not supported.');
     case 'object':
       scriptProperties.setProperty(key, JSON.stringify(value));
       break;
@@ -23,14 +23,14 @@ function __gasp__setLibraryScopedVariable<TValue>(key: string, value: TValue) {
       break;
   }
 }
-function __gasp__getLibraryScopedVariable(key: string) {
+function __gasp__getLibraryScopedVariable__(key: string) {
   return PropertiesService.getScriptProperties().getProperty(key);
 }
 
 //=====================================================================================
 // GASP TEST support (very crude)
 
-function __gasp__assert(test: boolean | (() => boolean)) {
+function __gasp__assert__(test: boolean | (() => boolean)) {
   let result = false;
   if (typeof test === 'boolean') {
     result = test;
@@ -46,7 +46,7 @@ function __gasp__assert(test: boolean | (() => boolean)) {
 // ============================================================================
 // GASP-internal library utilities
 
-function __gaspRunTests__() {
+function __gasp__runTests() {
   const TEST_OBJECT_NAME_PREFIX = "__gaspTestSuite__";
   const keys = Object.keys(globalThis);
   const testSuites = new Array<string>();

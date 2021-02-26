@@ -4,7 +4,7 @@ var __gaspTestSuite__CoreUtils_ = {
     let objA: Record<string, any> = { foo: "you", bar: "me" };
     const objB = { arty: "bad for the game", ten: 10 };
     objA = CoreUtils.extend(objA, objB);
-    __gasp__assert('arty' in objA && objA.arty === objB.arty);
-    __gasp__assert('ten' in objA && objA.ten === objB.ten);
+    __gasp__assert__('arty' in objA && objA.arty === objB.arty);
+    __gasp__assert__('ten' in objA && objA.ten === objB.ten);
   },
 };

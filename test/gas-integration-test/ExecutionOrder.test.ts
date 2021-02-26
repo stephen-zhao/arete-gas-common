@@ -1,5 +1,5 @@
 // This test script tests script execution order
-var __gasptestsuite__ExecutionOrder = {
+var __gaspTestSuite__ExecutionOrder = {
   typeScriptAbstractClassInheritance_loadsAbstractClassFirst() {
     // This test simply instantiates a GasLogger which inherits from LoggerBase
     // If this test fails, then execution order is not being induced correctly
